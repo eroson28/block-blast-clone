@@ -19,7 +19,7 @@ screen = pygame.display.set_mode((screenWidth, screenHeight))
 
 BLOCK_SHAPES = {
     "2x2square": {
-        "rotations": [[1, 1], [1, 1]],
+        "rotations": [[[1, 1], [1, 1]]],
         "color": (255, 255, 0),
         "probability": 100 / 14.0
     },
@@ -27,7 +27,6 @@ BLOCK_SHAPES = {
         "rotations": [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
         "color": (255, 255, 0),
         "probability": 100 / 14.0
-        
     },
     "I_straight_2": {
         "rotations": [[[1], [1]], [[1, 1]]],
@@ -50,53 +49,60 @@ BLOCK_SHAPES = {
         "probability": 100 / 14.0
     },
     "L_shape_2": {
-        "shape": [[1, 0], [1, 1]], [[1, 1], [1, 0]], [[0, 1], [1, 1]], [[1, 1], [1, 0]],
+        "rotations": [[[1, 0], [1, 1]], [[1, 1], [1, 0]], [[0, 1], [1, 1]], [[1, 1], [0, 1]]],
         "color": (255, 255, 0),
         "probability": 100 / 14.0
     },
     "L_shape_3_1": {
-        "shape": [[1, 0, 0], [1, 0, 0], [1, 1, 0]],
+        "rotations": [[[1, 0], [1, 0], [1, 1]], [[0, 1], [0, 1], [1, 1]], [[1, 1], [1, 0], [1, 0]], [[1, 1], [0, 1], [0, 1]]],
         "color": (255, 255, 0),
         "probability": 100 / 14.0
     },
     "L_shape_3_2": {
-        "shape": [[1, 0, 0], [1, 0, 0], [1, 1, 1]],
+        "rotations": [[[1, 0, 0], [1, 0, 0], [1, 1, 1]], [[0, 0, 1], [0, 0, 1], [1, 1, 1]], [[1, 1, 1], [1, 0, 0], [1, 0, 0]], [[1, 1, 1], [0, 0, 1], [0, 0, 1]]],
         "color": (255, 255, 0),
         "probability": 100 / 14.0
     },
     "3x3staircase": {
-        "shape": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+        "rotations": [[[1, 0, 0], [0, 1, 0], [0, 0, 1]], [[0, 0, 1], [0, 1, 0], [1, 0, 0]]],
         "color": (255, 255, 0),
         "probability": 100 / 14.0
     },
     "2x2staircase": {
-        "shape": [[1, 0], [0, 1]],
+        "rotations": [[[1, 0], [0, 1]], [[0, 1], [1, 0]]],
         "color": (255, 255, 0),
         "probability": 100 / 14.0
     },
     "2x3rect": {
-        "shape": [[1, 1, 1], [1, 1, 1]],
+        "rotations": [[[1, 1, 1], [1, 1, 1]]],
         "color": (255, 255, 0),
         "probability": 100 / 14.0
     },
     "S_shaped": {
-        "shape": [[1, 1, 0], [0, 1, 1]],
+        "rotations": [[[1, 1, 0], [0, 1, 1]], [[0, 1, 1], [1, 1, 0]], [[0, 1], [1, 1], [1, 0]], [[1, 0], [1, 1], [0, 1]]],
         "color": (255, 255, 0),
         "probability": 100 / 14.0
     },
     "T_shaped": {
-        "shape": [[1, 1, 1], [0, 1, 0]],
+        "rotations": [[[1, 1, 1], [0, 1, 0]], [[0, 1, 0], [1, 1, 1]], [[0, 1], [1, 1], [0, 1]], [[1, 0], [1, 1], [1, 0]]],
         "color": (255, 255, 0),
         "probability": 100 / 14.0
     }
 }
 
 class Block:
-    def __init__(self, shape, color, row, col):
-        self.shape = shape 
-        self.color = color
-        self.row = row      # Top-left corner grid row
-        self.col = col      # Top-left corner grid column
+    def __init__(self, block_type_name, row, col):
+        definition = BLOCK_SHAPES[block_type_name]
+        self.color = definition["color"]
+        self.rotations = definition["rotations"]
+        self.current_rotation_index = 0
+        self.shape = self.rotations[self.current_rotation_index] # The active shape
+
+        self.row = row
+        self.col = col
+
+        self.height = len(self.shape)
+        self.width = len(self.shape[0]) if self.height > 0 else 0
 
 pygame.display.set_caption("test")
 pegs = [[0] * 8 for i in range(8)]
