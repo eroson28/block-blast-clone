@@ -18,8 +18,8 @@ TASKBAR_HEIGHT = 200
 SQUARE_LENGTH = (SCREEN_WIDTH - (2*OUTER_BORDER) - (2*INNER_BORDER) - (2*INNEST_BORDER) - (7 * INNEST_BORDER)) / 8.0
 SMALL_SQUARE_LENGTH = SQUARE_LENGTH / 4.0
 BLOCK_1_DRAWPOS = BORDER_SUM + (SCREEN_WIDTH / 200)
-BLOCK_2_DRAWPOS = (SCREEN_WIDTH / 2) - (SCREEN_WIDTH / 200)
-BLOCK_3_DRAWPOS = SCREEN_WIDTH - BLOCK_1_DRAWPOS
+BLOCK_2_DRAWPOS = (SCREEN_WIDTH / 2) - (SCREEN_WIDTH / 180)
+BLOCK_3_DRAWPOS = SCREEN_WIDTH - 2 * BLOCK_1_DRAWPOS
 BLOCK_DRAW_POSITIONS = {
         0: BLOCK_1_DRAWPOS,
         1: BLOCK_2_DRAWPOS,
@@ -223,8 +223,9 @@ while running:
             for j in range(currentBlocks[i].height):
                 for k in range(currentBlocks[i].width):
                     if currentBlocks[i].shape[j][k] == 1:
-                        pygame.draw.rect(screen, "#B9C6D5", (BLOCK_DRAW_POSITIONS[i] + (SMALL_SQUARE_LENGTH * 2 * k), BLOCKSPAWN_HEIGHT + (SMALL_SQUARE_LENGTH * 2 * j), SMALL_SQUARE_LENGTH, SMALL_SQUARE_LENGTH))
+                        pygame.draw.rect(screen, "#B9C6D5", (BLOCK_DRAW_POSITIONS[i] + (SMALL_SQUARE_LENGTH * 1.3 * k), BLOCKSPAWN_HEIGHT + (SMALL_SQUARE_LENGTH * 1.3 * j), SMALL_SQUARE_LENGTH, SMALL_SQUARE_LENGTH))
                     
     clock.tick(60)  # limits FPS to 60
-
+    pygame.display.flip()
+    
 pygame.quit()
