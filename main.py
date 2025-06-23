@@ -18,7 +18,7 @@ TASKBAR_HEIGHT = 200
 SQUARE_LENGTH = (SCREEN_WIDTH - (2*OUTER_BORDER) - (2*INNER_BORDER) - (2*INNEST_BORDER) - (7 * INNEST_BORDER)) / 8.0
 SMALL_SQUARE_LENGTH = SQUARE_LENGTH / 4.0
 BLOCK_1_DRAWPOS = BORDER_SUM + (SCREEN_WIDTH / 200)
-BLOCK_2_DRAWPOS = (SCREEN_WIDTH / 2) - (SCREEN_WIDTH / 180)
+BLOCK_2_DRAWPOS = (SCREEN_WIDTH / 2) - (SCREEN_WIDTH / 30)
 BLOCK_3_DRAWPOS = SCREEN_WIDTH - 2 * BLOCK_1_DRAWPOS
 BLOCK_DRAW_POSITIONS = {
         0: BLOCK_1_DRAWPOS,
@@ -148,7 +148,29 @@ def spawn_block(index):
     # Spawns a block and stores it in a rectangle object array
     randomGen = choose_block()
     spawnedBlock = Block(randomGen[0], randomGen[1])
+    
+    spawnedBlock.initial_draw_x = BLOCK_DRAW_POSITIONS[index]
+    spawnedBlock.initial_draw_y = BLOCKSPAWN_HEIGHT
+    spawnedBlock.current_draw_x = BLOCK_DRAW_POSITIONS[index]
+    spawnedBlock.current_draw_y = BLOCKSPAWN_HEIGHT
+    
     currentBlocks[index] = spawnedBlock
+    
+    currentBlockRectObjects[index] = [[None for x in range(spawnedBlock.width)] for y in range(spawnedBlock.height)]
+
+def spawn_three_blocks():
+    spawn_block(0)
+    spawn_block(1)
+    spawn_block(2)
+
+def place_block_outline(block):
+    for i in block.height:
+        for j in block.width:
+            if pegRectObjectsPopulated:
+                if pegRectObjects[i][j].collidepoint(event.pos):
+                    currentMousePos = [i, j]
+                    print(currentMousePos)
+    
 
 # GAME VARIABLES
 # pegs stores the binary state of each square. pegRectObjects stores references to 
@@ -159,12 +181,14 @@ pegRectObjects = [[0] * 8 for i in range(8)]
 # list being referenced before it has been populated
 pegRectObjectsPopulated = False
 dragging = False
+draggedBlock = None
 currentMousePos = [0, 0]
 currentBlocks = [None, None, None]
+drag_offset_x, drag_offset_y = 0.0, 0.0
+currentBlockRectObjects = [[[] for x in range(5)] for y in range(3)]
+blockDragCoord = [None, None]
 
-spawn_block(0)
-spawn_block(1)
-spawn_block(2)
+spawn_three_blocks()
 
 running = True
 while running:
@@ -172,31 +196,37 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_x, mouse_y = event.pos
             if event.button == 1:
-                for i in range(8):
-                    for j in range(8):
-                        if pegRectObjects[i][j].collidepoint(event.pos):
-                            dragging = True
-                            print("COLLISION")
-                            mouse_x, mouse_y = event.pos
-                            Block.row = mouse_x + 1
-                            Block.col = mouse_y + 1
-                            # TO-DO
+                for i in range(3):
+                    for j in range(currentBlocks[i].height):
+                        for k in range(currentBlocks[i].width):
+                            if currentBlockRectObjects[i][j][k] is not None:
+                                if currentBlockRectObjects[i][j][k].collidepoint(event.pos):
+                                    dragging = True
+                                    draggedBlock = currentBlocks[i]
+                                    drag_offset_x = currentBlocks[i].current_draw_x - mouse_x 
+                                    drag_offset_y = currentBlocks[i].current_draw_y - mouse_y
+                                    blockDragCoord = [i, j]
+            
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:            
                 dragging = False
+                draggedBlock = None
+        
         elif event.type == pygame.MOUSEMOTION:
-            if dragging:
-                mouse_x, mouse_y = event.pos
-                Block.row = mouse_x + 1
-                Block.col = mouse_y + 1
-                # TO-DO
+            mouse_x, mouse_y = event.pos
+            if dragging and draggedBlock is not None:
+                draggedBlock.current_draw_x = mouse_x + drag_offset_x
+                draggedBlock.current_draw_y = mouse_y + drag_offset_y
+                
             for i in range(8):
                     for j in range(8):
                         if pegRectObjectsPopulated:
                             if pegRectObjects[i][j].collidepoint(event.pos):
-                                currentMousePos = [i, j]
-                                print(currentMousePos)
+                                gridMousePos = [i, j]
+                                print(gridMousePos)
+                                
 
     pegs[2][2] = 1;
     
@@ -220,10 +250,12 @@ while running:
     # Redraw 3 choice pieces
     for i in range(3):
         if currentBlocks[i]:
+            current_x = currentBlocks[i].current_draw_x
+            current_y = currentBlocks[i].current_draw_y
             for j in range(currentBlocks[i].height):
                 for k in range(currentBlocks[i].width):
                     if currentBlocks[i].shape[j][k] == 1:
-                        pygame.draw.rect(screen, "#B9C6D5", (BLOCK_DRAW_POSITIONS[i] + (SMALL_SQUARE_LENGTH * 1.3 * k), BLOCKSPAWN_HEIGHT + (SMALL_SQUARE_LENGTH * 1.3 * j), SMALL_SQUARE_LENGTH, SMALL_SQUARE_LENGTH))
+                        currentBlockRectObjects[i][j][k] = pygame.draw.rect(screen, "#B9C6D5", (current_x + (SMALL_SQUARE_LENGTH * 1.3 * k), current_y + (SMALL_SQUARE_LENGTH * 1.3 * j), SMALL_SQUARE_LENGTH, SMALL_SQUARE_LENGTH))
                     
     clock.tick(60)  # limits FPS to 60
     pygame.display.flip()
