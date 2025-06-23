@@ -163,14 +163,8 @@ def spawn_three_blocks():
     spawn_block(1)
     spawn_block(2)
 
-def place_block_outline(block):
-    for i in block.height:
-        for j in block.width:
-            if pegRectObjectsPopulated:
-                if pegRectObjects[i][j].collidepoint(event.pos):
-                    currentMousePos = [i, j]
-                    print(currentMousePos)
-    
+def check_valid_placement():
+    pegs[gridMousePos[0], gridMousePos[1]]
 
 # GAME VARIABLES
 # pegs stores the binary state of each square. pegRectObjects stores references to 
