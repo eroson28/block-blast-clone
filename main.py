@@ -190,6 +190,30 @@ def place_block(block):
     else:
         print("False")
         
+def clear_rows():
+    global score
+
+    rows_to_clear = []
+    cols_to_clear = []
+
+    for row in range(8):
+        if all(pegs[col][row] == 1 for col in range(8)):
+            rows_to_clear.append(row)
+
+    for col in range(8):
+        if all(pegs[col][row] == 1 for row in range(8)):
+            cols_to_clear.append(col)
+
+    for row in rows_to_clear:
+        for col in range(8):
+            pegs[col][row] = 0
+
+    for col in cols_to_clear:
+        for row in range(8):
+            pegs[col][row] = 0
+
+    score += 10 * (len(rows_to_clear) + len(cols_to_clear))
+    
 # GAME VARIABLES
 pegs = [[0] * 8 for i in range(8)]
 pegRectObjects = [[0] * 8 for i in range(8)]
@@ -204,9 +228,10 @@ currentBlockIndex = None
 drag_offset_x, drag_offset_y = 0.0, 0.0
 currentBlockRectObjects = [[[] for x in range(5)] for y in range(3)]
 blockMousePos = [None, None]
-
-
+# score isn't used yet, but might be in the future
+score = 0
 spawn_three_blocks()
+
 running = True
 while running:
     for event in pygame.event.get():
@@ -236,20 +261,27 @@ while running:
                     draggedBlock = None
                 if currentBlocks == [None, None, None]:
                     spawn_three_blocks()
+                clear_rows()
         
         elif event.type == pygame.MOUSEMOTION:
             mouse_x, mouse_y = event.pos
             if dragging and draggedBlock is not None:
                 draggedBlock.current_draw_x = mouse_x + drag_offset_x
                 draggedBlock.current_draw_y = mouse_y + drag_offset_y
-                
             for i in range(8):
                     for j in range(8):
                         if pegRectObjectsPopulated:
                             if pegRectObjects[i][j].collidepoint(event.pos):
                                 gridMousePos = [i, j]
-
-    pegs[2][5] = 1;
+        
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                for i in range(8):
+                    for j in range(8):
+                        pegs[i][j] = 0
+                score = 0
+                currentBlocks = [None, None, None]
+                spawn_three_blocks()
     
     # Redraw static background
     screen.fill("#D8DEE1")
@@ -263,7 +295,7 @@ while running:
             x = BORDER_SUM + i * (SQUARE_LENGTH + INNEST_BORDER)
             y = BORDER_SUM + j * (SQUARE_LENGTH + INNEST_BORDER)
             if pegs[i][j] == 0:
-                pegRectObjects[i][j] = pygame.draw.rect(screen, "#8f9631ff", (x, y, SQUARE_LENGTH, SQUARE_LENGTH))
+                pegRectObjects[i][j] = pygame.draw.rect(screen, "#636823ff", (x, y, SQUARE_LENGTH, SQUARE_LENGTH))
             else:
                 pegRectObjects[i][j] = pygame.draw.rect(screen, "#b7d414ff", (x, y, SQUARE_LENGTH, SQUARE_LENGTH))
     pegRectObjectsPopulated = True
