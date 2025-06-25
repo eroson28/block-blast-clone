@@ -162,13 +162,35 @@ def spawn_three_blocks():
     spawn_block(0)
     spawn_block(1)
     spawn_block(2)
+    
+def check_valid_placement(block):
+    for i in range(block.height):
+        for j in range(block.width):     
+            gridRow = gridMousePos[0] + j - blockMousePos[0]
+            gridCol = gridMousePos[1] + i - blockMousePos[1]
 
-def check_valid_placement():
-    pegs[gridMousePos[0], gridMousePos[1]]
-
+            if block.shape[i][j] == 1:
+                if gridRow < 0 or gridRow > 7 or gridCol < 0 or gridCol > 7:
+                    print("out of bounds")
+                    return False
+                if pegs[gridRow][gridCol] == 1:
+                    print("peg occupied")
+                    return False
+    return True        
+            
+def place_block(block):
+    if check_valid_placement(block):
+        for i in range(block.height):
+            for j in range(block.width):     
+                gridRow = gridMousePos[0] + j - blockMousePos[0]
+                gridCol = gridMousePos[1] + i - blockMousePos[1]
+                if block.shape[i][j] == 1:
+                    pegs[gridRow][gridCol] = 1
+        currentBlocks[currentBlockIndex] = None
+    else:
+        print("False")
+        
 # GAME VARIABLES
-# pegs stores the binary state of each square. pegRectObjects stores references to 
-# the Rect object of each peg at it's respective coordinate
 pegs = [[0] * 8 for i in range(8)]
 pegRectObjects = [[0] * 8 for i in range(8)]
 # pegRectObjectsPopulated exists to prevent error from the object 
@@ -178,12 +200,13 @@ dragging = False
 draggedBlock = None
 currentMousePos = [0, 0]
 currentBlocks = [None, None, None]
+currentBlockIndex = None
 drag_offset_x, drag_offset_y = 0.0, 0.0
 currentBlockRectObjects = [[[] for x in range(5)] for y in range(3)]
-blockDragCoord = [None, None]
+blockMousePos = [None, None]
+
 
 spawn_three_blocks()
-
 running = True
 while running:
     for event in pygame.event.get():
@@ -193,20 +216,26 @@ while running:
             mouse_x, mouse_y = event.pos
             if event.button == 1:
                 for i in range(3):
-                    for j in range(currentBlocks[i].height):
-                        for k in range(currentBlocks[i].width):
-                            if currentBlockRectObjects[i][j][k] is not None:
-                                if currentBlockRectObjects[i][j][k].collidepoint(event.pos):
-                                    dragging = True
-                                    draggedBlock = currentBlocks[i]
-                                    drag_offset_x = currentBlocks[i].current_draw_x - mouse_x 
-                                    drag_offset_y = currentBlocks[i].current_draw_y - mouse_y
-                                    blockDragCoord = [i, j]
+                    if currentBlocks[i] is not None:
+                        for j in range(currentBlocks[i].height):
+                            for k in range(currentBlocks[i].width):
+                                if currentBlockRectObjects[i][j][k] is not None:
+                                    if currentBlockRectObjects[i][j][k].collidepoint(event.pos):
+                                        dragging = True
+                                        draggedBlock = currentBlocks[i]
+                                        currentBlockIndex = i
+                                        drag_offset_x = draggedBlock.current_draw_x - mouse_x 
+                                        drag_offset_y = draggedBlock.current_draw_y - mouse_y
+                                        blockMousePos = [k, j]
             
         elif event.type == pygame.MOUSEBUTTONUP:
-            if event.button == 1:            
-                dragging = False
-                draggedBlock = None
+            if event.button == 1:
+                if dragging and draggedBlock is not None:        
+                    dragging = False
+                    place_block(draggedBlock)
+                    draggedBlock = None
+                if currentBlocks == [None, None, None]:
+                    spawn_three_blocks()
         
         elif event.type == pygame.MOUSEMOTION:
             mouse_x, mouse_y = event.pos
@@ -219,10 +248,8 @@ while running:
                         if pegRectObjectsPopulated:
                             if pegRectObjects[i][j].collidepoint(event.pos):
                                 gridMousePos = [i, j]
-                                print(gridMousePos)
-                                
 
-    pegs[2][2] = 1;
+    pegs[2][5] = 1;
     
     # Redraw static background
     screen.fill("#D8DEE1")
